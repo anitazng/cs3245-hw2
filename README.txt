@@ -1,9 +1,9 @@
-This is the README file for A0000000X's submission
-Email(s): e0000000@u.nus.edu
+This is the README file for A0267818M-A0267993E's submission
+Email(s): e1100338@u.nus.edu, e1100705@u.nus.edu
 
 == Python Version ==
 
-I'm (We're) using Python Version <3.8.10 or replace version number> for
+We're using Python Version 3.8.10 for
 this assignment.
 
 == General Notes about this assignment ==
