@@ -22,7 +22,7 @@ and formatted correctly.
 
 Please put a "x" (without the double quotes) into the bracket of the appropriate statement.
 
-[x] I/We, A0000000X, certify that I/we have followed the CS 3245 Information
+[x] We, A0267818M-A0267993E, certify that I/we have followed the CS 3245 Information
 Retrieval class guidelines for homework assignments.  In particular, I/we
 expressly vow that I/we have followed the Facebook rule in discussing
 with others in doing the assignment and did not take notes (digital or
