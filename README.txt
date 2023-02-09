@@ -41,3 +41,17 @@ We suggest that we should be graded as follows:
 
 <Please list any websites and/or people you consulted with for this
 assignment and state their role>
+
+THINGS TO DO:
+1. Decide whether we want to use BSBI or SPIMI to implement a scalable index construction
+2. Figure out how to implement whichever technique we choose above lol
+3. Steps for constructing an index 
+    1. Generate the sequence of term, docID pairs (make sure to apply case-folding, tokenizing, and stemming on the document text)
+    2. Sort this list by term (alphabetically) and then docID (under the same term) 
+    3. Merge repeated term entries by splitting into dictionary and posting list
+        a. Write terms and pointer to posting list into dictionary.txt and the posting list itself into postings.txt
+4. Add skip pointers to posting list (using math.sqrt(len(posting)))
+5. Implement searching method
+    1. Figure out how to parse Boolean expressions (take a look at Dijkstra's Shunting yard algo)
+    2. Parse each query and use our constructed index to obtain the results (docIDs)
+    3. Write the results into the output file, one line per query, each docID separated by a single space
