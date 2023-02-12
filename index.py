@@ -1,9 +1,12 @@
 #!/usr/bin/python3
+from importlib.resources import contents
 import re
 import nltk
 import sys
 import getopt
 import os
+import string
+from nltk.stem.porter import *
 
 def usage():
     print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
@@ -14,26 +17,39 @@ def build_index(in_dir, out_dict, out_postings):
     then output the dictionary file and postings file
     """
     print('indexing...')
-    nltk.download('punkt')
     dictionary = {}
 
-    for filename in os.listdir(in_dir): # grab all filenames in in_directory
+    for filename in os.listdir(in_dir)[:100]: # grab all filenames in in_directory
         with open(os.path.join(in_dir, filename), 'r') as f: # open each file
-            content = f.read()
-            sentences = nltk.tokenize.sent_tokenize(content)
-            words = []
-            
-            for sentence in sentences:
-                for word in nltk.tokenize.word_tokenize(sentence):
-                    words.append(word)
-            
+            content = (f.read()).lower() # apply case-folding
+            content = content.translate(str.maketrans('', '', string.punctuation)) # remove punctuation
+            words = nltk.tokenize.word_tokenize(content) # tokenize into words
+
+            stemmer = PorterStemmer()
+            words = [stemmer.stem(word) for word in words] # apply stemming
+
             for word in words:
                 if word not in dictionary:
-                    dictionary[word] = [filename]
+                    dictionary[word] = [int(filename)]
+                    break
                 else:
-                    dictionary[word] = dictionary[word].append(filename)
-    
-    print(dictionary)
+                    dictionary[word].append(int(filename))
+
+    sorted_dict = dict(sorted(dictionary.items()))
+
+    with open(out_dict, "w+") as f1:
+        with open(out_postings, "w+") as f2:
+            for word, postings in sorted_dict.items():
+                postings.sort()
+
+                f1.write(word + "\n")
+                postings_list = ""
+                
+                for posting in postings:
+                    postings_list += str(posting) + " "
+                    f2.write(postings_list.strip())
+                
+                f2.write("\n")
 
 input_directory = output_file_dictionary = output_file_postings = None
 
