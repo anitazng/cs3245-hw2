@@ -3,6 +3,7 @@ import re
 import nltk
 import sys
 import getopt
+import os
 
 def usage():
     print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
@@ -13,8 +14,26 @@ def build_index(in_dir, out_dict, out_postings):
     then output the dictionary file and postings file
     """
     print('indexing...')
-    # This is an empty method
-    # Pls implement your code in below
+    nltk.download('punkt')
+    dictionary = {}
+
+    for filename in os.listdir(in_dir): # grab all filenames in in_directory
+        with open(os.path.join(in_dir, filename), 'r') as f: # open each file
+            content = f.read()
+            sentences = nltk.tokenize.sent_tokenize(content)
+            words = []
+            
+            for sentence in sentences:
+                for word in nltk.tokenize.word_tokenize(sentence):
+                    words.append(word)
+            
+            for word in words:
+                if word not in dictionary:
+                    dictionary[word] = [filename]
+                else:
+                    dictionary[word] = dictionary[word].append(filename)
+    
+    print(dictionary)
 
 input_directory = output_file_dictionary = output_file_postings = None
 
