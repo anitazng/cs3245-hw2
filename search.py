@@ -61,21 +61,19 @@ def evaluate_exp(query, dict_file, postings_file, full_postings_list):
     operators = ["AND", "NOT", "OR"]
     stack = []
 
-    # not entirely correct. modify so that we're not performing get_postings_list on every call, but only when 
-    # the token isn't a postings list already?
     for token in query:
         if token not in operators:
-            stack.append(token)
+            stack.append(get_postings_list(token))
         elif token == "NOT":
-            stack.append(logical_not(get_postings_list(stack.pop()), full_postings_list))
+            stack.append(logical_not(stack.pop(), full_postings_list))
         elif token == "AND":
-            term_one = stack.pop()
-            term_two = stack.pop()
-            stack.append(logical_and(get_postings_list(term_one), get_postings_list(term_two)))
+            postings_one = stack.pop()
+            postings_two = stack.pop()
+            stack.append(logical_and(postings_one, postings_two))
         else:
-            term_one = stack.pop()
-            term_two = stack.pop()
-            stack.append(logical_or(get_postings_list(term_one), get_postings_list(term_two)))
+            postings_one = stack.pop()
+            postings_two = stack.pop()
+            stack.append(logical_or(postings_one, postings_two))
 
     return stack[0]
 
