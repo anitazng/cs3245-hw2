@@ -43,7 +43,7 @@ We suggest that we should be graded as follows:
 assignment and state their role>
 
 THINGS TO DO:
-1. Decide whether we want to use BSBI or SPIMI to implement a scalable index construction
+1. Decide whether we want to use BSBI or SPIMI to implement a scalable index construction (memory block size of 30 mb)
 2. Figure out how to implement whichever technique we choose above lol
 3. Steps for constructing an index 
     1. Generate the sequence of term, docID pairs (make sure to apply case-folding, tokenizing, and stemming on the document text)

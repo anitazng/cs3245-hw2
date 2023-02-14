@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import re
+from ssl import cert_time_to_seconds
 import nltk
 import sys
 import getopt
@@ -13,8 +14,82 @@ def run_search(dict_file, postings_file, queries_file, results_file):
     perform searching on the given queries file and output the results to a file
     """
     print('running search on the queries...')
-    # This is an empty method
-    # Pls implement your code in below
+    # open queries file and process each query
+    with open(queries_file) as f1:
+        with open(results_file) as f2:
+            lines = f1.readlines()
+
+            for line in lines:
+                postfix_exp = create_postfix_exp(line)
+
+                f2.write(evaluate_exp(postfix_exp, dict_file, postings_file)) # write the result of each query into the results-file
+    
+def get_postings_list(term):
+    pass
+
+def create_postfix_exp(query):
+    # use shunting-yard algorithm to turn in-fix query into a post-fix query
+    operators = ["AND", "NOT", "OR"]
+    op_precedence = {"OR": 0, "AND": 1, "NOT": 2} # order of precedence is NOT, then AND, then OR
+    buffer = []
+    op_stack = []
+    tokens = re.findall("AND|OR|NOT|\(|\)|\w+", query) # tokenize the query, i.e. get all words and operators
+    
+    # https://aquarchitect.github.io/swift-algorithm-club/Shunting%20Yard/
+    for token in tokens:
+        if token == "OR" or token == "AND" or token == "NOT":
+            while len(op_stack) != 0 and op_stack[-1] in operators and op_precedence[op_stack[-1]] > op_precedence[token]:  
+                buffer.append(op_stack.pop())
+            op_stack.append(token)
+        elif token == "(":
+            op_stack.append(token)
+        elif token == ")":
+            while op_stack[-1] != "(":
+                buffer.append(op_stack.pop())
+            op_stack.pop() # pop ( character
+        else:
+            buffer.append(token)
+        
+    while len(op_stack) != 0:
+        buffer.append(op_stack.pop())
+    
+    return buffer
+
+def evaluate_exp(query, dict_file, postings_file, full_postings_list):
+    # given a post-fix query as a list, use a stack to evaluate the query
+    # returns string containing the resulting docIDs
+    operators = ["AND", "NOT", "OR"]
+    stack = []
+
+    # not entirely correct. modify so that we're not performing get_postings_list on every call, but only when 
+    # the token isn't a postings list already?
+    for token in query:
+        if token not in operators:
+            stack.append(token)
+        elif token == "NOT":
+            stack.append(logical_not(get_postings_list(stack.pop()), full_postings_list))
+        elif token == "AND":
+            term_one = stack.pop()
+            term_two = stack.pop()
+            stack.append(logical_and(get_postings_list(term_one), get_postings_list(term_two)))
+        else:
+            term_one = stack.pop()
+            term_two = stack.pop()
+            stack.append(logical_or(get_postings_list(term_one), get_postings_list(term_two)))
+
+    return stack[0]
+
+def logical_and(postings_one, postings_two):
+    # returns the merged postings lists using the and operator
+    pass
+
+def logical_or(postings_one, postings_two):
+    # returns the merged postings lists using the or operator
+    pass
+
+def logical_not(postings_list, full_postings_list):
+    # returns the merged postings lists using the not operator
+    pass
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 
