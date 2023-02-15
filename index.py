@@ -20,7 +20,9 @@ def build_index(in_dir, out_dict, out_postings):
     print('indexing...')
     starting_file_index = 0
     iterations = 0
+    termID = 1
     os.mkdir("disk/")
+    termID_dict = {}
 
     while starting_file_index < 7769:
         word_and_postings_dictionary = {}
@@ -40,11 +42,16 @@ def build_index(in_dir, out_dict, out_postings):
                     words = [stemmer.stem(word) for word in words] # apply stemming
 
                     for word in words:
-                        if word not in word_and_postings_dictionary:
-                            word_and_postings_dictionary[word] = [int(filename)]
-                            break
+                        if word in termID_dict:
+                            if termID_dict[word] not in word_and_postings_dictionary:
+                                word_and_postings_dictionary[termID_dict[word]] = [int(filename)]
+                                break
+                            else:
+                                word_and_postings_dictionary[termID_dict[word]].append(int(filename))
                         else:
-                            word_and_postings_dictionary[word].append(int(filename))
+                            termID_dict[word] = termID
+                            word_and_postings_dictionary[termID_dict[word]] = [int(filename)]
+                            termID += 1
             else:
                 break
         print(total_size)
@@ -52,19 +59,25 @@ def build_index(in_dir, out_dict, out_postings):
         postings_file = open("disk/postingslist" + str(iterations) + ".txt", "a")
         dictionary_file = open("disk/dictionary" + str(iterations) + ".txt", "a")
         dictionary = {}
-        for word, postings in sorted_dict.items():
+        for termID, postings in sorted_dict.items():
             postings.sort()
-            dictionary.update({word: postings_file.tell()})
+            dictionary.update({termID: postings_file.tell()})
             postings_file.write(str(postings))
         dictionary_file.write(str(dictionary))
         postings_file.close()
         dictionary_file.close()
+
+    with open("term-to-termID.txt", "w+") as f:
+        for term, termID in termID_dict.items():
+            f.write(term + ": " + str(termID) + "\n")
 
     lst_of_files = []
     for filename in os.listdir('disk/')[:]:
         lst_of_files.append(open('disk/' + filename, 'a'))
     
     # Merge disk/ directory files 
+    for term in termID_dict.keys():
+        pass
 
     for filename in lst_of_files:
         filename.close()
@@ -73,10 +86,10 @@ def build_index(in_dir, out_dict, out_postings):
 
     with open(out_dict, "w+") as f1:
         with open(out_postings, "w+") as f2:
-            for word, postings in sorted_dict.items():
+            for termID, postings in sorted_dict.items():
                 postings.sort()
 
-                f1.write(word + "\n")
+                f1.write(str(termID) + "\n")
                 postings_list = ""
                 
                 for posting in postings:

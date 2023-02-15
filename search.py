@@ -4,6 +4,7 @@ from ssl import cert_time_to_seconds
 import nltk
 import sys
 import getopt
+import json
 
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -24,7 +25,21 @@ def run_search(dict_file, postings_file, queries_file, results_file):
 
                 f2.write(evaluate_exp(postfix_exp, dict_file, postings_file)) # write the result of each query into the results-file
     
-def get_postings_list(term):
+def get_postings_list(term, term_to_termID_dict, dict_file, postings_file,):
+    # returns list of docIDs
+
+    with open(term_to_termID_dict) as f:
+        mapping = f.read()
+        mapping = json.loads(mapping)
+
+    with open(dict_file) as f:
+        dictionary = f.read()
+        dictionary = json.loads(mapping)
+
+    termID = mapping[term]
+    byte_location = dictionary[termID]
+
+    
     pass
 
 def create_postfix_exp(query):
