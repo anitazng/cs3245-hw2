@@ -5,6 +5,7 @@ import nltk
 import sys
 import getopt
 import os
+import math
 import string
 from nltk.stem.porter import *
 
@@ -17,25 +18,58 @@ def build_index(in_dir, out_dict, out_postings):
     then output the dictionary file and postings file
     """
     print('indexing...')
-    dictionary = {}
+    starting_file_index = 0
+    iterations = 0
+    os.mkdir("disk/")
 
-    for filename in os.listdir(in_dir)[:100]: # grab all filenames in in_directory
-        with open(os.path.join(in_dir, filename), 'r') as f: # open each file
-            content = (f.read()).lower() # apply case-folding
-            content = content.translate(str.maketrans('', '', string.punctuation)) # remove punctuation
-            words = nltk.tokenize.word_tokenize(content) # tokenize into words
+    while starting_file_index < 7769:
+        word_and_postings_dictionary = {}
+        iterations += 1
+        total_size = 0
+        for filename in os.listdir(in_dir)[starting_file_index:]: # grab all filenames in in_directory
+            if total_size <= 2:
+                file_stats = os.stat('training/' + filename)
+                total_size += file_stats.st_size / (1024 * 1024)
+                starting_file_index += 1
+                with open(os.path.join(in_dir, filename), 'r') as f: # open each file
+                    content = (f.read()).lower() # apply case-folding
+                    content = content.translate(str.maketrans('', '', string.punctuation)) # remove punctuation
+                    words = nltk.tokenize.word_tokenize(content) # tokenize into words
 
-            stemmer = PorterStemmer()
-            words = [stemmer.stem(word) for word in words] # apply stemming
+                    stemmer = PorterStemmer()
+                    words = [stemmer.stem(word) for word in words] # apply stemming
 
-            for word in words:
-                if word not in dictionary:
-                    dictionary[word] = [int(filename)]
-                    break
-                else:
-                    dictionary[word].append(int(filename))
+                    for word in words:
+                        if word not in word_and_postings_dictionary:
+                            word_and_postings_dictionary[word] = [int(filename)]
+                            break
+                        else:
+                            word_and_postings_dictionary[word].append(int(filename))
+            else:
+                break
+        print(total_size)
+        sorted_dict = dict(sorted(word_and_postings_dictionary.items()))
+        postings_file = open("disk/postingslist" + str(iterations) + ".txt", "a")
+        dictionary_file = open("disk/dictionary" + str(iterations) + ".txt", "a")
+        dictionary = {}
+        for word, postings in sorted_dict.items():
+            postings.sort()
+            dictionary.update({word: postings_file.tell()})
+            postings_file.write(str(postings))
+        dictionary_file.write(str(dictionary))
+        postings_file.close()
+        dictionary_file.close()
 
-    sorted_dict = dict(sorted(dictionary.items()))
+    lst_of_files = []
+    for filename in os.listdir('disk/')[:]:
+        lst_of_files.append(open('disk/' + filename, 'a'))
+    
+    # Merge disk/ directory files 
+
+    for filename in lst_of_files:
+        filename.close()
+
+    # Add in the skip pointers after the postings lists have been finalized (see temp.py for code)
 
     with open(out_dict, "w+") as f1:
         with open(out_postings, "w+") as f2:

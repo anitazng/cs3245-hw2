@@ -43,7 +43,7 @@ We suggest that we should be graded as follows:
 assignment and state their role>
 
 THINGS TO DO:
-1. Decide whether we want to use BSBI or SPIMI to implement a scalable index construction (memory block size of 30 mb)
+1. Decide whether we want to use BSBI or SPIMI to implement a scalable index construction
 2. Figure out how to implement whichever technique we choose above lol
 3. Steps for constructing an index 
     1. Generate the sequence of term, docID pairs (make sure to apply case-folding, tokenizing, and stemming on the document text)
@@ -55,3 +55,6 @@ THINGS TO DO:
     1. Figure out how to parse Boolean expressions (take a look at Dijkstra's Shunting yard algo)
     2. Parse each query and use our constructed index to obtain the results (docIDs)
     3. Write the results into the output file, one line per query, each docID separated by a single space
+
+We are using size 2 MB blocks. There is a total of 7769 documents, which has a total size of 6.311 MB.
+The block sizes are 2.003 MB, 2.000 MB, 2.000 MB, and 0.308 MB for a total of 4 blocks.
