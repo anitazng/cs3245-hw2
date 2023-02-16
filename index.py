@@ -23,7 +23,7 @@ def build_index(in_dir, out_dict, out_postings):
     termID = 1
     os.mkdir("disk/")
     termID_dict = {}
-    files = (os.listdir(in_dir)).sort(key = int) # grab all filenames in in_directory in sorted order
+    files = sorted(os.listdir(in_dir), key=int) # grab all filenames in in_directory in sorted order
 
     while starting_file_index < 7769:
         word_and_postings_dictionary = {}
