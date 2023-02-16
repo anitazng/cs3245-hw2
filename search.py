@@ -5,6 +5,7 @@ import nltk
 import sys
 import getopt
 import json
+import ast
 
 def usage():
     print("usage: " + sys.argv[0] + " -d dictionary-file -p postings-file -q file-of-queries -o output-file-of-results")
@@ -23,24 +24,36 @@ def run_search(dict_file, postings_file, queries_file, results_file):
             for line in lines:
                 postfix_exp = create_postfix_exp(line)
 
-                f2.write(evaluate_exp(postfix_exp, dict_file, postings_file)) # write the result of each query into the results-file
+                # modify this so that it writes only the docIDs to the results_file and not the tuples with the docID and skip pointer
+                f2.write(evaluate_exp(postfix_exp, dict_file, postings_file, "all_docIDs.txt")) # write the result of each query into the results-file
     
 def get_postings_list(term, term_to_termID_dict, dict_file, postings_file,):
     # returns list of docIDs
+    postings = ""
 
-    with open(term_to_termID_dict) as f:
+    with open(term_to_termID_dict) as f: # get termID
         mapping = f.read()
         mapping = json.loads(mapping)
 
-    with open(dict_file) as f:
+    with open(dict_file) as f: # load dictionary into memory
         dictionary = f.read()
-        dictionary = json.loads(mapping)
+        dictionary = json.loads(dictionary)
 
-    termID = mapping[term]
+    termID = mapping[term] 
     byte_location = dictionary[termID]
 
+    with open(postings_file) as f:
+        f.seek(byte_location)
+        char = f.read(1) # skip the "[" character
+        char = f.read(1) # read first postings list char
+
+        while char != "]":
+            postings += char
+            char = f.read(1)
     
-    pass
+    postings_list = list(ast.literal_eval(postings))
+
+    return postings_list
 
 def create_postfix_exp(query):
     # use shunting-yard algorithm to turn in-fix query into a post-fix query
@@ -94,15 +107,77 @@ def evaluate_exp(query, dict_file, postings_file, full_postings_list):
 
 def logical_and(postings_one, postings_two):
     # returns the merged postings lists using the and operator
-    pass
+
+    result = []
+    p1 = 0
+    p2 = 0
+
+    while p1 != len(postings_one) and p2 != len(postings_two):
+        if postings_one[p1][0] == postings_two[p2][0]:
+            result.append(postings_one[p1])
+            p1 += 1
+            p2 += 1
+        elif postings_one[p1][0] < postings_two[p2][0]:
+            if postings_one[p1][1] != None and postings_one[p1][1] <= postings_two[p2][0]:
+                while postings_one[p1][1] != None and postings_one[p1][1] <= postings_two[p2][0]:
+                    p1 = postings_one[p1][1]
+                else:
+                    p1 += 1
+            elif postings_two[p2][1] != None and postings_two[p2][1] <= postings_one[p1][0]:
+                while postings_two[p2][1] != None and postings_two[p2][1] <= postings_one[p1][0]:
+                    p2 = postings_two[p2][1]
+                else:
+                    p2 += 1
+    
+    return result
 
 def logical_or(postings_one, postings_two):
     # returns the merged postings lists using the or operator
-    pass
+
+    result = []
+    p1 = 0
+    p2 = 0
+
+    while p1 != len(postings_one) and p2 != len(postings_two):
+        if postings_one[p1][0] < postings_two[p2][0]:
+            result.append(postings_one[p1])
+            p1 += 1
+        elif postings_one[p1][0] == postings_two[p2][0]:
+            result.append(postings_one[p1])
+            p1 += 1
+            p2 += 1
+        else:
+            result.append(postings_two[p2])
+            p2 += 1
+
+    if p1 != len(postings_one):
+        for posting in postings_one[p1:]:
+            result.append(posting[0])
+    
+    if p2 != len(postings_two):
+        for posting in postings_two[p2:]:
+            result.append(posting[0])
+
+    return result
 
 def logical_not(postings_list, full_postings_list):
     # returns the merged postings lists using the not operator
-    pass
+
+    result = []
+    p1 = 0
+    p2 = 0
+
+    while p1 != len(postings_list):
+        if postings_list[p1][0] != full_postings_list[p2][0]:
+            result.append(full_postings_list[p2][0])
+            p2 += 1
+        else:
+            p1 += 1
+            p2 += 1
+
+    result.append(full_postings_list[p2][0])
+
+    return result
 
 dictionary_file = postings_file = file_of_queries = output_file_of_results = None
 

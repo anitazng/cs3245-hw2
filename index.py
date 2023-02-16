@@ -26,12 +26,14 @@ def build_index(in_dir, out_dict, out_postings):
     os.mkdir("disk/dictionaries/")
     os.mkdir("disk/postingslists/")
     termID_dict = {}
+    files = (os.listdir(in_dir)).sort(key = int) # grab all filenames in in_directory in sorted order
 
     while starting_file_index < 7769:
         word_and_postings_dictionary = {}
         iterations += 1
         total_size = 0
-        for filename in os.listdir(in_dir)[starting_file_index:]: # grab all filenames in in_directory
+
+        for filename in files[starting_file_index:]: # grab all filenames in in_directory
             if total_size <= 2:
                 file_stats = os.stat('training/' + filename)
                 total_size += file_stats.st_size / (1024 * 1024)
@@ -57,13 +59,12 @@ def build_index(in_dir, out_dict, out_postings):
                             termID += 1
             else:
                 break
-        print(total_size)
+        # print(total_size)
         sorted_dict = dict(sorted(word_and_postings_dictionary.items()))
         postings_file = open("disk/postingslists/postingslist" + str(iterations) + ".txt", "a")
         dictionary_file = open("disk/dictionaries/dictionary" + str(iterations) + ".txt", "a")
         dictionary = {}
         for termID, postings in sorted_dict.items():
-            postings.sort()
             dictionary.update({termID: postings_file.tell()})
             postings_file.write(str(postings))
         dictionary_file.write(str(dictionary))
