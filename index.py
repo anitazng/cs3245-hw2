@@ -7,6 +7,7 @@ import getopt
 import os
 import math
 import string
+import ast 
 from nltk.stem.porter import *
 
 def usage():
@@ -22,6 +23,8 @@ def build_index(in_dir, out_dict, out_postings):
     iterations = 0
     termID = 1
     os.mkdir("disk/")
+    os.mkdir("disk/dictionaries/")
+    os.mkdir("disk/postingslists/")
     termID_dict = {}
     files = sorted(os.listdir(in_dir), key=int) # grab all filenames in in_directory in sorted order
 
@@ -58,8 +61,8 @@ def build_index(in_dir, out_dict, out_postings):
                 break
         # print(total_size)
         sorted_dict = dict(sorted(word_and_postings_dictionary.items()))
-        postings_file = open("disk/postingslist" + str(iterations) + ".txt", "a")
-        dictionary_file = open("disk/dictionary" + str(iterations) + ".txt", "a")
+        postings_file = open("disk/postingslists/postingslist" + str(iterations) + ".txt", "a")
+        dictionary_file = open("disk/dictionaries/dictionary" + str(iterations) + ".txt", "a")
         dictionary = {}
         for termID, postings in sorted_dict.items():
             dictionary.update({termID: postings_file.tell()})
@@ -72,32 +75,40 @@ def build_index(in_dir, out_dict, out_postings):
         for term, termID in termID_dict.items():
             f.write(term + ": " + str(termID) + "\n")
 
+    lst_of_dictionaries = []
     lst_of_files = []
-    for filename in os.listdir('disk/')[:]:
-        lst_of_files.append(open('disk/' + filename, 'a'))
-    
+    for filename in os.listdir('disk/dictionaries/')[:]:
+        f = open('disk/dictionaries/' + filename, 'r')
+        data = f.read()
+        dictionary = ast.literal_eval(data)
+        lst_of_dictionaries.append(dictionary)
+        lst_of_files.append(f)
+    for filename in os.listdir('disk/postingslists/')[:]:
+        lst_of_files.append(open('disk/postingslists/' + filename, 'r'))
+
     # Merge disk/ directory files 
-    for term in termID_dict.keys():
-        pass
+    # for term in termID_dict.keys():
+    #     for dictionary in lst_of_dictionaries:
+    #         if term is in dictionary.keys():
 
     for filename in lst_of_files:
         filename.close()
 
     # Add in the skip pointers after the postings lists have been finalized (see temp.py for code)
 
-    with open(out_dict, "w+") as f1:
-        with open(out_postings, "w+") as f2:
-            for termID, postings in sorted_dict.items():
-                postings.sort()
+    # with open(out_dict, "w+") as f1:
+    #     with open(out_postings, "w+") as f2:
+    #         for termID, postings in sorted_dict.items():
+    #             postings.sort()
 
-                f1.write(str(termID) + "\n")
-                postings_list = ""
+    #             f1.write(str(termID) + "\n")
+    #             postings_list = ""
                 
-                for posting in postings:
-                    postings_list += str(posting) + " "
-                    f2.write(postings_list.strip())
+    #             for posting in postings:
+    #                 postings_list += str(posting) + " "
+    #                 f2.write(postings_list.strip())
                 
-                f2.write("\n")
+    #             f2.write("\n")
 
 input_directory = output_file_dictionary = output_file_postings = None
 
