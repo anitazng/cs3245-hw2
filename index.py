@@ -82,14 +82,12 @@ def build_index(in_dir, out_dict, out_postings):
         lst_of_files.append(open('disk/postingslists/' + filename, 'r'))
 
     # Merge disk/ directory files 
-    # for term in termID_dict.keys():
-    #     for dictionary in lst_of_dictionaries:
-    #         if term is in dictionary.keys():
 
     for filename in lst_of_files:
         filename.close()
 
     # Add in the skip pointers after the postings lists have been finalized (see temp.py for code)
+    # Add document frequency to dictionary at the end of merging
 
     # with open(out_dict, "w+") as f1:
     #     with open(out_postings, "w+") as f2:
