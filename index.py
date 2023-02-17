@@ -21,7 +21,6 @@ def build_index(in_dir, out_dict, out_postings):
     print('indexing...')
     starting_file_index = 0
     iterations = 0
-    dictionary = {}
     os.mkdir("disk/")
     os.mkdir("disk/dictionaries/")
     os.mkdir("disk/postingslists/")
@@ -50,7 +49,7 @@ def build_index(in_dir, out_dict, out_postings):
                             word_and_postings_dictionary[word] = [int(filename)]
                             break
                         else:
-                            word_and_postings_dictionary[word].append(filename)
+                            word_and_postings_dictionary[word].append(int(filename))
             else:
                 break
 
