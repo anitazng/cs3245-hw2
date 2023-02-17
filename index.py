@@ -27,7 +27,8 @@ def build_index(in_dir, out_dict, out_postings):
     files = sorted(os.listdir(in_dir), key=int) # grab all filenames in in_directory in sorted order
 
     while starting_file_index < 7769:
-        word_and_postings_dictionary = {}
+        term_and_postings_dictionary = {}
+        term_docID_pairs_lst = []
         iterations += 1
         total_size = 0
 
@@ -45,15 +46,20 @@ def build_index(in_dir, out_dict, out_postings):
                     words = [stemmer.stem(word) for word in words] # apply stemming
 
                     for word in words:
-                        if word not in word_and_postings_dictionary:
-                            word_and_postings_dictionary[word] = [int(filename)]
-                            break
-                        else:
-                            word_and_postings_dictionary[word].append(int(filename))
+                        term_docID_pairs_lst.append((word, int(filename)))
             else:
                 break
 
-        sorted_dict = dict(sorted(word_and_postings_dictionary.items()))
+        term_docID_pairs_lst = list(dict.fromkeys(term_docID_pairs_lst)) # remove duplicates from list of term-docID pairs
+        sorted_lst = sorted(term_docID_pairs_lst)
+
+        for (term, docID) in sorted_lst:
+            if term not in term_and_postings_dictionary:
+                term_and_postings_dictionary[term] = [docID]
+            else:
+                term_and_postings_dictionary[term].append(docID)
+
+        sorted_dict = dict(sorted(term_and_postings_dictionary.items()))
         postings_file = open("disk/postingslists/postingslist" + str(iterations) + ".txt", "a")
         dictionary_file = open("disk/dictionaries/dictionary" + str(iterations) + ".txt", "a")
         dictionary = {}
