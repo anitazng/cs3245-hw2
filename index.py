@@ -46,17 +46,11 @@ def build_index(in_dir, out_dict, out_postings):
                     words = [stemmer.stem(word) for word in words] # apply stemming
 
                     for word in words:
-                        if word not in dictionary:
-                            dictionary[word] = [int(filename)]
+                        if word not in word_and_postings_dictionary:
+                            word_and_postings_dictionary[word] = [int(filename)]
                             break
                         else:
-                            dictionary[word].append(int(filename))
-                            for word in words:
-                                if word not in word_and_postings_dictionary:
-                                    word_and_postings_dictionary[word] = [int(filename)]
-                                    break
-                                else:
-                                    word_and_postings_dictionary[word].append(int(filename))
+                            word_and_postings_dictionary[word].append(filename)
             else:
                 break
 
@@ -64,8 +58,8 @@ def build_index(in_dir, out_dict, out_postings):
         postings_file = open("disk/postingslists/postingslist" + str(iterations) + ".txt", "a")
         dictionary_file = open("disk/dictionaries/dictionary" + str(iterations) + ".txt", "a")
         dictionary = {}
-        for termID, postings in sorted_dict.items():
-            dictionary.update({termID: postings_file.tell()})
+        for term, postings in sorted_dict.items():
+            dictionary.update({term: postings_file.tell()})
             postings_file.write(str(postings))
         dictionary_file.write(str(dictionary))
         postings_file.close()
