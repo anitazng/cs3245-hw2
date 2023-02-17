@@ -27,20 +27,15 @@ def run_search(dict_file, postings_file, queries_file, results_file):
                 # modify this so that it writes only the docIDs to the results_file and not the tuples with the docID and skip pointer
                 f2.write(evaluate_exp(postfix_exp, dict_file, postings_file, "all_docIDs.txt")) # write the result of each query into the results-file
     
-def get_postings_list(term, term_to_termID_dict, dict_file, postings_file,):
+def get_postings_list(term, dict_file, postings_file,):
     # returns list of docIDs
     postings = ""
-
-    with open(term_to_termID_dict) as f: # get termID
-        mapping = f.read()
-        mapping = json.loads(mapping)
 
     with open(dict_file) as f: # load dictionary into memory
         dictionary = f.read()
         dictionary = json.loads(dictionary)
 
-    termID = mapping[term] 
-    byte_location = dictionary[termID]
+    byte_location = dictionary[term]
 
     with open(postings_file) as f:
         f.seek(byte_location)

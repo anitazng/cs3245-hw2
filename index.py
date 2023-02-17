@@ -21,11 +21,10 @@ def build_index(in_dir, out_dict, out_postings):
     print('indexing...')
     starting_file_index = 0
     iterations = 0
-    termID = 1
+    dictionary = {}
     os.mkdir("disk/")
     os.mkdir("disk/dictionaries/")
     os.mkdir("disk/postingslists/")
-    termID_dict = {}
     files = sorted(os.listdir(in_dir), key=int) # grab all filenames in in_directory in sorted order
 
     while starting_file_index < 7769:
@@ -47,19 +46,20 @@ def build_index(in_dir, out_dict, out_postings):
                     words = [stemmer.stem(word) for word in words] # apply stemming
 
                     for word in words:
-                        if word in termID_dict:
-                            if termID_dict[word] not in word_and_postings_dictionary:
-                                word_and_postings_dictionary[termID_dict[word]] = [int(filename)]
-                                break
-                            else:
-                                word_and_postings_dictionary[termID_dict[word]].append(int(filename))
+                        if word not in dictionary:
+                            dictionary[word] = [int(filename)]
+                            break
                         else:
-                            termID_dict[word] = termID
-                            word_and_postings_dictionary[termID_dict[word]] = [int(filename)]
-                            termID += 1
+                            dictionary[word].append(int(filename))
+                            for word in words:
+                                if word not in word_and_postings_dictionary:
+                                    word_and_postings_dictionary[word] = [int(filename)]
+                                    break
+                                else:
+                                    word_and_postings_dictionary[word].append(int(filename))
             else:
                 break
-        # print(total_size)
+
         sorted_dict = dict(sorted(word_and_postings_dictionary.items()))
         postings_file = open("disk/postingslists/postingslist" + str(iterations) + ".txt", "a")
         dictionary_file = open("disk/dictionaries/dictionary" + str(iterations) + ".txt", "a")
@@ -70,10 +70,6 @@ def build_index(in_dir, out_dict, out_postings):
         dictionary_file.write(str(dictionary))
         postings_file.close()
         dictionary_file.close()
-
-    with open("term-to-termID.txt", "w+") as f:
-        for term, termID in termID_dict.items():
-            f.write(term + ": " + str(termID) + "\n")
 
     lst_of_dictionaries = []
     lst_of_files = []
