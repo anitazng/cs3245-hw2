@@ -71,19 +71,6 @@ def build_index(in_dir, out_dict, out_postings):
         postings_file.close()
         dictionary_file.close()
 
-    lst_of_dictionaries = []
-    lst_of_postings_lists_files = []
-    lst_of_all_files = []
-    for filename in os.listdir('disk/dictionaries/')[:]:
-        f = open('disk/dictionaries/' + filename, 'r')
-        data = f.read()
-        dictionary = ast.literal_eval(data)
-        lst_of_dictionaries.append(dictionary)
-        lst_of_all_files.append(f)
-    for filename in os.listdir('disk/postingslists/')[:]:
-        lst_of_all_files.append(open('disk/postingslists/' + filename, 'r'))
-        lst_of_postings_lists_files.append(open('disk/postingslists/' + filename, 'r'))
-
     def get_postings_list(term, dictionary, postings_file):
         # returns list of docIDs
         postings = ""
@@ -96,40 +83,67 @@ def build_index(in_dir, out_dict, out_postings):
         postings_list = list(ast.literal_eval(postings))
         return postings_list
 
-    # Merge disk/ directory files 
-    num_dictionaries = len(lst_of_dictionaries)
-    for x in range(int(num_dictionaries / 2)):
-        y = (x * 2) + 1
-        f_d12 = open('disk/dictionaries/dictionary' + str(x * 2 + 1) + str(y + 1) + '.txt', 'a')
-        f_p12 = open('disk/postingslists/postingslist' + str(x * 2 + 1) + str(y + 1) + '.txt', 'a')
-        d1 = lst_of_dictionaries[x * 2]
-        d2 = lst_of_dictionaries[y]
-        p1 = lst_of_postings_lists_files[x * 2]
-        p2 = lst_of_postings_lists_files[y]
-        d3 = {}
-        d3.update(d1)
-        d3.update(d2)
-        d3 = dict(sorted(d3.items()))
-        for (k, v) in d3.items():
-            if k in d1.keys() and k not in d2.keys():
-                postings_list = get_postings_list(k, d1, p1)
-                d3[k] = f_p12.tell()
-                f_p12.write(str(postings_list))
-            elif k in d2.keys() and k not in d1.keys():
-                postings_list = get_postings_list(k, d2, p2)
-                d3[k] = f_p12.tell()
-                f_p12.write(str(postings_list))
-            else:
-                postings_list_1 = get_postings_list(k, d1, p1)
-                postings_list_2 = get_postings_list(k, d2, p2)
-                postings_list_1 += postings_list_2
-                postings_list = sorted(postings_list_1)
-                d3[k] = f_p12.tell()
-                f_p12.write(str(postings_list))
-        f_d12.write(str(d3))
+    num = 0
+    height_of_tree = int(math.log2(iterations))
+    while num < height_of_tree:
+        lst_of_dictionaries = []
+        lst_of_postings_lists_files = []
+        lst_of_all_filenames = []
+        lst_of_all_files = []
+        lst_of_all_shorthand_filenames = []
+        for filename in os.listdir('disk/dictionaries/')[:]:
+            f = open('disk/dictionaries/' + filename, 'r')
+            data = f.read()
+            dictionary = ast.literal_eval(data)
+            lst_of_dictionaries.append(dictionary)
+            lst_of_all_filenames.append('disk/dictionaries/' + filename)
+            lst_of_all_files.append(f)
+            lst_of_all_shorthand_filenames.append(str(filename))
+        for filename in os.listdir('disk/postingslists/')[:]:
+            f = open('disk/postingslists/' + filename, 'r')
+            lst_of_postings_lists_files.append(f)
+            lst_of_all_filenames.append('disk/postingslists/' + filename)
+            lst_of_all_files.append(f)
+            lst_of_all_shorthand_filenames.append(str(filename))
 
-    for filename in lst_of_all_files:
-        filename.close()
+        for x in range(len(lst_of_dictionaries)):
+            if x % 2 == 0:
+                f_d12 = open('disk/dictionaries/dictionary' + 
+                             lst_of_all_shorthand_filenames[x] + lst_of_all_shorthand_filenames[x + 1] + '.txt', 'a')
+                f_p12 = open('disk/postingslists/postingslist' + 
+                             lst_of_all_shorthand_filenames[x] + lst_of_all_shorthand_filenames[x + 1] + '.txt', 'a')
+                d1 = lst_of_dictionaries[x]
+                d2 = lst_of_dictionaries[x + 1]
+                p1 = lst_of_postings_lists_files[x]
+                p2 = lst_of_postings_lists_files[x + 1]
+                d3 = {}
+                d3.update(d1)
+                d3.update(d2)
+                d3 = dict(sorted(d3.items()))
+                for (k, v) in d3.items():
+                    if k in d1.keys() and k not in d2.keys():
+                        postings_list = get_postings_list(k, d1, p1)
+                        d3[k] = f_p12.tell()
+                        f_p12.write(str(postings_list))
+                    elif k in d2.keys() and k not in d1.keys():
+                        postings_list = get_postings_list(k, d2, p2)
+                        d3[k] = f_p12.tell()
+                        f_p12.write(str(postings_list))
+                    else:
+                        postings_list_1 = get_postings_list(k, d1, p1)
+                        postings_list_2 = get_postings_list(k, d2, p2)
+                        postings_list_1 += postings_list_2
+                        postings_list = sorted(postings_list_1)
+                        d3[k] = f_p12.tell()
+                        f_p12.write(str(postings_list))
+                f_d12.write(str(d3))
+                f_p12.close()
+                f_d12.close()
+        
+        for x in range(len(lst_of_all_filenames)):
+            lst_of_all_files[x].close()
+            os.remove(lst_of_all_filenames[x])
+        num += 1
 
     # Add in the skip pointers after the postings lists have been finalized (see temp.py for code)
     # Add document frequency to dictionary at the end of merging
