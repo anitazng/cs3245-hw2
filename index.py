@@ -7,6 +7,7 @@ import getopt
 import os
 import math
 import string
+import json
 import ast 
 from nltk.stem.porter import *
 
@@ -71,37 +72,67 @@ def build_index(in_dir, out_dict, out_postings):
         dictionary_file.close()
 
     lst_of_dictionaries = []
-    lst_of_files = []
+    lst_of_postings_lists_files = []
+    lst_of_all_files = []
     for filename in os.listdir('disk/dictionaries/')[:]:
         f = open('disk/dictionaries/' + filename, 'r')
         data = f.read()
         dictionary = ast.literal_eval(data)
         lst_of_dictionaries.append(dictionary)
-        lst_of_files.append(f)
+        lst_of_all_files.append(f)
     for filename in os.listdir('disk/postingslists/')[:]:
-        lst_of_files.append(open('disk/postingslists/' + filename, 'r'))
+        lst_of_all_files.append(open('disk/postingslists/' + filename, 'r'))
+        lst_of_postings_lists_files.append(open('disk/postingslists/' + filename, 'r'))
+
+    def get_postings_list(term, dictionary, postings_file):
+        # returns list of docIDs
+        postings = ""
+        char = ""
+        byte_location = dictionary[term]
+        postings_file.seek(byte_location)
+        while char != "]":
+            char = postings_file.read(1)
+            postings += char
+        postings_list = list(ast.literal_eval(postings))
+        return postings_list
 
     # Merge disk/ directory files 
+    num_dictionaries = len(lst_of_dictionaries)
+    for x in range(int(num_dictionaries / 2)):
+        y = (x * 2) + 1
+        f_d12 = open('disk/dictionaries/dictionary' + str(x * 2 + 1) + str(y + 1) + '.txt', 'a')
+        f_p12 = open('disk/postingslists/postingslist' + str(x * 2 + 1) + str(y + 1) + '.txt', 'a')
+        d1 = lst_of_dictionaries[x * 2]
+        d2 = lst_of_dictionaries[y]
+        p1 = lst_of_postings_lists_files[x * 2]
+        p2 = lst_of_postings_lists_files[y]
+        d3 = {}
+        d3.update(d1)
+        d3.update(d2)
+        d3 = dict(sorted(d3.items()))
+        for (k, v) in d3.items():
+            if k in d1.keys() and k not in d2.keys():
+                postings_list = get_postings_list(k, d1, p1)
+                d3[k] = f_p12.tell()
+                f_p12.write(str(postings_list))
+            elif k in d2.keys() and k not in d1.keys():
+                postings_list = get_postings_list(k, d2, p2)
+                d3[k] = f_p12.tell()
+                f_p12.write(str(postings_list))
+            else:
+                postings_list_1 = get_postings_list(k, d1, p1)
+                postings_list_2 = get_postings_list(k, d2, p2)
+                postings_list_1 += postings_list_2
+                postings_list = sorted(postings_list_1)
+                d3[k] = f_p12.tell()
+                f_p12.write(str(postings_list))
+        f_d12.write(str(d3))
 
-    for filename in lst_of_files:
+    for filename in lst_of_all_files:
         filename.close()
 
     # Add in the skip pointers after the postings lists have been finalized (see temp.py for code)
     # Add document frequency to dictionary at the end of merging
-
-    # with open(out_dict, "w+") as f1:
-    #     with open(out_postings, "w+") as f2:
-    #         for termID, postings in sorted_dict.items():
-    #             postings.sort()
-
-    #             f1.write(str(termID) + "\n")
-    #             postings_list = ""
-                
-    #             for posting in postings:
-    #                 postings_list += str(posting) + " "
-    #                 f2.write(postings_list.strip())
-                
-    #             f2.write("\n")
 
 input_directory = output_file_dictionary = output_file_postings = None
 
