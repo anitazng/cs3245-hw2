@@ -7,6 +7,7 @@ import getopt
 import os
 import math
 import string
+import shutil
 import json
 import ast 
 from nltk.stem.porter import *
@@ -83,9 +84,9 @@ def build_index(in_dir, out_dict, out_postings):
         postings_list = list(ast.literal_eval(postings))
         return postings_list
 
-    num = 0
+    curr_height = 0
     height_of_tree = int(math.log2(iterations))
-    while num < height_of_tree:
+    while curr_height < height_of_tree:
         lst_of_dictionaries = []
         lst_of_postings_lists_files = []
         lst_of_all_filenames = []
@@ -143,9 +144,40 @@ def build_index(in_dir, out_dict, out_postings):
         for x in range(len(lst_of_all_filenames)):
             lst_of_all_files[x].close()
             os.remove(lst_of_all_filenames[x])
-        num += 1
+        curr_height += 1
 
-    # Add in the skip pointers after the postings lists have been finalized (see temp.py for code)
+    for filename in os.listdir('disk/dictionaries/')[:]:
+        shutil.move('disk/dictionaries/' + filename, out_dict)
+    for filename in os.listdir('disk/postingslists/')[:]:
+        shutil.move('disk/postingslists/' + filename, out_postings)
+    shutil.rmtree('disk/')
+
+    with open(out_dict) as f1: 
+        with open(out_postings) as f2:
+            with open('postingslistwskips.txt', 'w+') as f3:
+                data = f1.read()
+                dictionary = ast.literal_eval(data)
+                for (k, v) in dictionary.items():
+                    postings_list_w_skips = []
+                    postings_list = get_postings_list(k, dictionary, f2)
+                    dictionary[k] = f3.tell()
+                    skip_length = math.floor(math.sqrt(len(postings_list)))
+                    if skip_length >= 2:
+                        curr_skip_length = 0
+                        for index, posting in enumerate(postings_list):
+                            skip_pointer_index = curr_skip_length + skip_length
+                            if index % skip_length == 0 and skip_pointer_index < len(postings_list):
+                                postings_list_w_skips.append((posting, skip_pointer_index))
+                                curr_skip_length += skip_length
+                            else:
+                                postings_list_w_skips.append((posting, None))
+                    else:
+                        for posting in postings_list:
+                            postings_list_w_skips.append((posting, None))
+                    f3.write(str(postings_list_w_skips))
+    os.remove(out_postings)
+    shutil.move('postingslistwskips.txt', out_postings)
+
     # Add document frequency to dictionary at the end of merging
 
 input_directory = output_file_dictionary = output_file_postings = None
