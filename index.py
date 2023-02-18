@@ -152,7 +152,7 @@ def build_index(in_dir, out_dict, out_postings):
         shutil.move('disk/postingslists/' + filename, out_postings)
     shutil.rmtree('disk/')
 
-    with open(out_dict) as f1: 
+    with open(out_dict, 'r+') as f1: 
         with open(out_postings) as f2:
             with open('postingslistwskips.txt', 'w+') as f3:
                 data = f1.read()
@@ -175,10 +175,22 @@ def build_index(in_dir, out_dict, out_postings):
                         for posting in postings_list:
                             postings_list_w_skips.append((posting, None))
                     f3.write(str(postings_list_w_skips))
+                f1.truncate(0)
+                f1.seek(0)
+                f1.write(str(dictionary))
     os.remove(out_postings)
     shutil.move('postingslistwskips.txt', out_postings)
 
-    # Add document frequency to dictionary at the end of merging
+    with open(out_dict, 'r+') as f1: 
+        with open(out_postings) as f2:
+            data = f1.read()
+            dictionary = ast.literal_eval(data)
+            for (k, v) in dictionary.items():
+                postings_list = get_postings_list(k, dictionary, f2)
+                dictionary[k] = (v, len(postings_list))
+        f1.truncate(0)
+        f1.seek(0)
+        f1.write(str(dictionary))
 
 input_directory = output_file_dictionary = output_file_postings = None
 
