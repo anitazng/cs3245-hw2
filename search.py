@@ -78,7 +78,7 @@ def create_postfix_exp(query):
     
     return buffer
 
-def evaluate_exp(query, dict_file, postings_file, full_postings_list):
+def evaluate_exp(query, full_postings_list):
     # given a post-fix query as a list, use a stack to evaluate the query
     # returns string containing the resulting docIDs
     operators = ["AND", "NOT", "OR"]

@@ -39,7 +39,7 @@ def build_index(in_dir, out_dict, out_postings):
                 with open(os.path.join(in_dir, filename), 'r') as f: # open each file
                     content = (f.read()).lower() # apply case-folding
                     content = content.translate(str.maketrans('', '', string.punctuation)) # remove punctuation
-                    words = nltk.tokenize.word_tokenize(content) # tokenize into words
+                    words = nltk.tokenize.word_tokenize(content) # tokenize into words (change this so that we tokenize into sentences first and then words)
 
                     stemmer = PorterStemmer()
                     words = [stemmer.stem(word) for word in words] # apply stemming
