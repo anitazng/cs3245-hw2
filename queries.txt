@@ -1,1 +1,0 @@
-cat AND dog AND (horse OR turtle)

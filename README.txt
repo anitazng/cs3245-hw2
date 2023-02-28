@@ -3,7 +3,7 @@ Email(s): e1100338@u.nus.edu, e1100705@u.nus.edu
 
 == Python Version ==
 
-We're using Python Version 3.8.10 for
+We're using Python Version 3.9.13 for
 this assignment.
 
 == General Notes about this assignment ==
@@ -12,11 +12,28 @@ Give an overview of your program, describe the important algorithms/steps
 in your program, and discuss your experiments in general.  A few paragraphs 
 are usually sufficient.
 
+** index.py summary **
+
+The search.py file contains firstly the run_search function. This function processes each 
+query in the query file one by one and writes the resulting merged postings list to the 
+output file. The file also has a get_postings_list function that retrieves the postings list
+for a specific term. The next two functions are the create_postfix_exp and evaluate_exp
+functions. The create_postfix_exp function uses the Dijkstra's shunting yard algorithm to
+process the query into a postfix expression, meaning the operators are present after the
+operands, rather than in between, making the expression easier to evaluate. This postfix 
+query is then fed into the evaluate_exp function, which merges the postings lists together
+and returns the final result. The final three functions in this file are logical_and, 
+logical_or, and logical_not, which follow the algorithms seen in class to merge two postings
+lists together based on the operator.
+
 == Files included with this submission ==
 
-List the files in your submission here and provide a short 1 line
-description of each file.  Make sure your submission's files are named
-and formatted correctly.
+README.txt - contains information about the submission
+index.py - contains the logic for indexing
+search.py - contains the logic for searching the index
+dictionary.txt - contains the dictionary that includes each term, pointer to postings list (byte location), and doc frequency
+postings.txt - contains the postings lists, one after the others
+alldocIDs.txt - contains a full listing of all document IDs
 
 == Statement of individual work ==
 
@@ -41,20 +58,3 @@ We suggest that we should be graded as follows:
 
 <Please list any websites and/or people you consulted with for this
 assignment and state their role>
-
-THINGS TO DO:
-1. Decide whether we want to use BSBI or SPIMI to implement a scalable index construction
-2. Figure out how to implement whichever technique we choose above lol
-3. Steps for constructing an index 
-    1. Generate the sequence of term, docID pairs (make sure to apply case-folding, tokenizing, and stemming on the document text)
-    2. Sort this list by term (alphabetically) and then docID (under the same term) 
-    3. Merge repeated term entries by splitting into dictionary and posting list
-        a. Write terms and pointer to posting list into dictionary.txt and the posting list itself into postings.txt
-4. Add skip pointers to posting list (using math.sqrt(len(posting)))
-5. Implement searching method
-    1. Figure out how to parse Boolean expressions (take a look at Dijkstra's Shunting yard algo)
-    2. Parse each query and use our constructed index to obtain the results (docIDs)
-    3. Write the results into the output file, one line per query, each docID separated by a single space
-
-We are using size 2 MB blocks. There is a total of 7769 documents, which has a total size of 6.311 MB.
-The block sizes are 2.003 MB, 2.000 MB, 2.000 MB, and 0.308 MB for a total of 4 blocks.
