@@ -11,7 +11,6 @@ import shutil
 import json
 import ast 
 from nltk.stem.porter import *
-from io import TextIOWrapper
 
 def usage():
     print("usage: " + sys.argv[0] + " -i directory-of-documents -d dictionary-file -p postings-file")
@@ -73,26 +72,21 @@ def build_index(in_dir, out_dict, out_postings):
         postings_file.close()
         dictionary_file.close()
 
-    def get_postings_list(term, dictionary, postings_file: TextIOWrapper):
-    # returns list of docIDs
+    def get_postings_list(term, dictionary, postings_file):
+        # returns list of docIDs
         postings = ""
         char = ""
         byte_location = dictionary[term]
-        
         postings_file.seek(byte_location)
-        char = postings_file.read(1) # skip the "[" character
-        char = postings_file.read(1) # read first postings list char
 
         while char != "]":
-            if char != "[" and char != "]":
-                postings += char
             char = postings_file.read(1)
-    
-        postings_list = list(filter(None, postings.split(", ")))
-        
-        print(postings_list)
+            postings += char
+
+        postings_list = list(ast.literal_eval(postings))
 
         return postings_list
+
 
     curr_height = 0
     height_of_tree = int(math.log2(iterations))
