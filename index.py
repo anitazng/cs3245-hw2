@@ -28,6 +28,7 @@ def build_index(in_dir, out_dict, out_postings):
     os.mkdir("disk/postingslists/")
     files = sorted(os.listdir(in_dir), key=int) # grab all filenames in in_directory in sorted order
 
+    # Organize all files from the training/ directory into dictionary and postings files of size <= 2 MB
     while starting_file_index < 7769:
         term_and_postings_dictionary = {}
         term_docID_pairs_lst = []
@@ -72,6 +73,7 @@ def build_index(in_dir, out_dict, out_postings):
         postings_file.close()
         dictionary_file.close()
 
+    # Helper function to obtain the postings list given term, dictionary, and postings file parameters
     def get_postings_list(term, dictionary, postings_file):
         # returns list of docIDs
         postings = ""
@@ -87,7 +89,7 @@ def build_index(in_dir, out_dict, out_postings):
 
         return postings_list
 
-
+    # Two-Way Merging 
     curr_height = 0
     height_of_tree = int(math.log2(iterations))
     while curr_height < height_of_tree:
@@ -112,6 +114,7 @@ def build_index(in_dir, out_dict, out_postings):
             lst_of_all_shorthand_filenames.append(str(filename))
 
         for x in range(len(lst_of_dictionaries)):
+            # Process each item and the next one in the list of dictionaries and postings  
             if x % 2 == 0:
                 f_d12 = open('disk/dictionaries/dictionary' + 
                              lst_of_all_shorthand_filenames[x] + lst_of_all_shorthand_filenames[x + 1] + '.txt', 'a')
@@ -121,10 +124,14 @@ def build_index(in_dir, out_dict, out_postings):
                 d2 = lst_of_dictionaries[x + 1]
                 p1 = lst_of_postings_lists_files[x]
                 p2 = lst_of_postings_lists_files[x + 1]
+
+                # Merge the two dictionaries into an intermediate dictionary file f_d12
                 d3 = {}
                 d3.update(d1)
                 d3.update(d2)
                 d3 = dict(sorted(d3.items()))
+                
+                # Merge the two postings list files into an intermediate postings list file f_p12
                 for (k, v) in d3.items():
                     if k in d1.keys() and k not in d2.keys():
                         postings_list = get_postings_list(k, d1, p1)
@@ -150,12 +157,14 @@ def build_index(in_dir, out_dict, out_postings):
             os.remove(lst_of_all_filenames[x])
         curr_height += 1
 
+    # Rename the final dictionary and postings files into the two given file parameter names 
     for filename in os.listdir('disk/dictionaries/')[:]:
         shutil.move('disk/dictionaries/' + filename, out_dict)
     for filename in os.listdir('disk/postingslists/')[:]:
         shutil.move('disk/postingslists/' + filename, out_postings)
     shutil.rmtree('disk/')
 
+    # Implement skip pointers into the dictionary file given by parameter
     with open(out_dict, 'r+') as f1: 
         with open(out_postings) as f2:
             with open('postingslistwskips.txt', 'w+') as f3:
@@ -185,6 +194,7 @@ def build_index(in_dir, out_dict, out_postings):
     os.remove(out_postings)
     shutil.move('postingslistwskips.txt', out_postings)
 
+    # Add document frequency to each item in dictionary file given by parameter
     with open(out_dict, 'r+') as f1: 
         with open(out_postings) as f2:
             data = f1.read()

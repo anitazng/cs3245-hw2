@@ -3,16 +3,21 @@ Email(s): e1100338@u.nus.edu, e1100705@u.nus.edu
 
 == Python Version ==
 
-We're using Python Version 3.9.13 for
-this assignment.
+We're using Python Version 3.9.13 for this assignment.
 
 == General Notes about this assignment ==
 
-Give an overview of your program, describe the important algorithms/steps 
-in your program, and discuss your experiments in general.  A few paragraphs 
-are usually sufficient.
-
-** index.py summary **
+The index.py file uses the SPIMI model to build the index with an assumed memory limit of 2 MB. 
+The file contains the build_index function, which firsts begins with organizing all the files 
+from the training/ directory into new dictionary and postings files of size <= 2 MB. Then, once 
+these files with the appropriate block sizes are created, it is time to merge them in steps into 
+one final dictionary file and one final postings file given by the parameters of the build_index 
+function. The way the function merges the files is through two-way merging. If the 
+dictionary/postings were organized into a binary tree, we loop the number of times that is the 
+height of the binary tree, continually creating merged intermediate files and deleting 
+previous files in the loop. Once all the files have been merged into the dictionary file and 
+postings file, the function implements skip pointers and adds the document frequency for each
+item in the dictionary file. 
 
 The search.py file contains firstly the run_search function. This function processes each 
 query in the query file one by one and writes the resulting merged postings list to the 
@@ -56,5 +61,5 @@ We suggest that we should be graded as follows:
 
 == References ==
 
-<Please list any websites and/or people you consulted with for this
-assignment and state their role>
+Stack Overflow - Looking up syntax for working with disk/files in Python
+Piazza - Posted questions online and used answers from prof, tutors, and peers 
